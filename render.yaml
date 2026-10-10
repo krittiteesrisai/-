@@ -46,3 +46,37 @@ services:
         value: always
       - key: SPRING_SQL_INIT_SCHEMALOCATIONS
         value: classpath:db/postgresql/schema.sql
+
+  # REST API + Swagger UI (profile api) ใช้ DB เดียวกับหน้าเว็บ
+  # Swagger: https://<rental-api>.onrender.com/swagger-ui.html
+  # schema ให้ rental-web เป็นคนสร้าง ตัวนี้แค่ validate
+  - type: web
+    name: rental-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./code/Dockerfile
+    dockerContext: ./code
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: api
+      - key: DB_HOST
+        fromDatabase:
+          name: rental-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: rental-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: rental-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: rental-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: rental-db
+          property: password
