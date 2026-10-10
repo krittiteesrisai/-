@@ -1,0 +1,48 @@
+# Render Blueprint สำหรับ deploy fork นี้แบบคลิกเดียว (ไม่ใช้ DB กลางของกลุ่ม)
+# Render > New > Blueprint > เลือก repo นี้ + branch deploy-fork > Apply
+# จะได้ PostgreSQL ของตัวเอง 1 ตัว และหน้าเว็บ 1 ตัว ที่ต่อ DB ให้อัตโนมัติ
+
+databases:
+  - name: rental-db
+    plan: free
+    region: singapore
+    databaseName: rental
+    user: rental
+
+services:
+  - type: web
+    name: rental-web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./code/Dockerfile
+    dockerContext: ./code
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # application.properties ประกอบ JDBC URL จาก DB_HOST/DB_PORT/DB_NAME เองเมื่อไม่มี DB_URL
+      - key: DB_HOST
+        fromDatabase:
+          name: rental-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: rental-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: rental-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: rental-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: rental-db
+          property: password
+      # สร้าง/อัปเดต schema ทุกครั้งที่ start (schema.sql รันซ้ำได้) ก่อน Hibernate validate
+      - key: SPRING_SQL_INIT_MODE
+        value: always
+      - key: SPRING_SQL_INIT_SCHEMALOCATIONS
+        value: classpath:db/postgresql/schema.sql
