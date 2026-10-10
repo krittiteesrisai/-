@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org"><body>
+<!-- สไลด์รูปหน้ารายละเอียด: ปัดหรือกดลูกศรเลื่อนได้ ถ้ามีรูปเดียวแสดงเหมือนเดิม -->
+<div class="gallery" data-gallery th:fragment="gallery(slides, label)">
+  <div class="gallery-track" data-gallery-track tabindex="0" role="group" th:aria-label="${label}">
+    <img th:each="src, s : ${slides}" class="detail-photo gallery-slide" th:src="@{${src}}"
+         th:alt="${s.size > 1 ? label + ' รูปที่ ' + s.count + ' จาก ' + s.size : label}" width="1536" height="1024"
+         th:attr="fetchpriority=${s.first ? 'high' : 'auto'},loading=${s.first ? 'eager' : 'lazy'}">
+  </div>
+  <th:block th:if="${#lists.size(slides) > 1}">
+    <button class="gallery-nav gallery-prev" type="button" data-gallery-prev aria-label="รูปก่อนหน้า">&#8249;</button>
+    <button class="gallery-nav gallery-next" type="button" data-gallery-next aria-label="รูปถัดไป">&#8250;</button>
+    <span class="gallery-count" data-gallery-count aria-live="polite" th:text="${'1 / ' + #lists.size(slides)}">1 / 2</span>
+  </th:block>
+</div>
+</body></html>

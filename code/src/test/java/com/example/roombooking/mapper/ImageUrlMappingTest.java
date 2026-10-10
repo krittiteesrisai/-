@@ -13,6 +13,7 @@ import com.example.roombooking.dto.response.EquipmentResponse;
 import com.example.roombooking.dto.response.RoomResponse;
 import com.example.roombooking.repository.EquipmentRepository;
 import com.example.roombooking.repository.MeetingRoomRepository;
+import com.example.roombooking.service.ImageStorageService;
 import com.example.roombooking.service.impl.EquipmentServiceImpl;
 import com.example.roombooking.service.impl.RoomServiceImpl;
 import jakarta.validation.Validation;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -132,7 +134,7 @@ class ImageUrlMappingTest {
 
     @Test
     void webUiPrefersImageUrlAndFallsBackToOldImages() {
-        WebUi ui = new WebUi();
+        WebUi ui = new WebUi(mock(ImageStorageService.class));
         RoomResponse room = new RoomResponse();
         assertEquals("/assets/img/room-focus.png", ui.roomImage(room));
         room.setImageUrl("https://example.com/room.png");
@@ -147,6 +149,23 @@ class ImageUrlMappingTest {
         EquipmentResponse other = new EquipmentResponse();
         other.setName("Whiteboard");
         assertEquals("/assets/img/equipment-placeholder.svg", ui.equipmentImage(other));
+    }
+
+    @Test
+    void galleryListsUploadedImagesOrFallsBackToTheSingleImage() {
+        ImageStorageService images = mock(ImageStorageService.class);
+        WebUi ui = new WebUi(images);
+        RoomResponse room = new RoomResponse();
+        room.setId(3L);
+        assertEquals(List.of("/assets/img/room-focus.png"), ui.roomGallery(room));
+
+        when(images.imageIds(ImageStorageService.Kind.ROOM, 3L)).thenReturn(List.of(10L, 11L));
+        assertEquals(List.of("/images/10", "/images/11"), ui.roomGallery(room));
+
+        EquipmentResponse mic = new EquipmentResponse();
+        mic.setId(3L);
+        mic.setName("Microphone");
+        assertEquals(List.of("/assets/img/microphone.png"), ui.equipmentGallery(mic));
     }
 
     private static RoomCreateRequest roomRequest(String imageUrl) {

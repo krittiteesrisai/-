@@ -53,4 +53,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dialog && typeof dialog.showModal === 'function') trigger.addEventListener('click', () => dialog.showModal());
   });
   document.querySelectorAll('[data-dialog-close]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
+  document.querySelectorAll('[data-gallery]').forEach((gallery) => {
+    const track = gallery.querySelector('[data-gallery-track]');
+    const prev = gallery.querySelector('[data-gallery-prev]');
+    const next = gallery.querySelector('[data-gallery-next]');
+    const count = gallery.querySelector('[data-gallery-count]');
+    if (!track || !prev || !next) return;
+    const total = track.children.length;
+    const current = () => Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+    const go = (index) => track.scrollTo({left: Math.max(0, Math.min(total - 1, index)) * track.clientWidth});
+    const update = () => {
+      const index = current();
+      prev.disabled = index <= 0; next.disabled = index >= total - 1;
+      if (count) count.textContent = `${index + 1} / ${total}`;
+    };
+    prev.addEventListener('click', () => go(current() - 1));
+    next.addEventListener('click', () => go(current() + 1));
+    track.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); go(current() - 1); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); go(current() + 1); }
+    });
+    track.addEventListener('scroll', () => window.requestAnimationFrame(update), {passive: true});
+    update();
+  });
 });
