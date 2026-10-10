@@ -37,16 +37,17 @@ public class AdminViewController {
     private final UserService users;
     private final UserRepository userRepository;
     private final WebSessionSupport sessions;
+    private final ImageStorageService images;
     public AdminViewController(RoomService rooms, EquipmentService equipment, BookingService bookings, UserService users,
-            UserRepository userRepository, WebSessionSupport sessions) {
+            UserRepository userRepository, WebSessionSupport sessions, ImageStorageService images) {
         this.rooms=rooms; this.equipment=equipment; this.bookings=bookings; this.users=users;
-        this.userRepository=userRepository; this.sessions=sessions;
+        this.userRepository=userRepository; this.sessions=sessions; this.images=images;
     }
     @InitBinder("form") public void safeBinding(WebDataBinder binder) {
         binder.setAutoGrowCollectionLimit(100);
         Class<?> type = binder.getTarget() == null ? Object.class : binder.getTarget().getClass();
-        if (type == AdminRoomForm.class) binder.setAllowedFields("name","capacity","floor","roomType","status","imageUrl");
-        else if (type == AdminEquipmentForm.class) binder.setAllowedFields("name","totalQuantity","category","imageUrl");
+        if (type == AdminRoomForm.class) binder.setAllowedFields("name","capacity","floor","roomType","status","imageUrl","imageFile");
+        else if (type == AdminEquipmentForm.class) binder.setAllowedFields("name","totalQuantity","category","imageUrl","imageFile");
         else if (type == AdminUserForm.class) binder.setAllowedFields("username","email","password","role");
         else if (type == AdminBookingForm.class) binder.setAllowedFields("userId","roomId","date","startTime","endTime","purpose","equipmentItems[*].equipmentId","equipmentItems[*].quantity");
     }
@@ -121,9 +122,15 @@ public class AdminViewController {
             HttpServletRequest request, Model model, RedirectAttributes redirect) { return saveRoom(id,form,errors,request,model,redirect); }
     private String saveRoom(Long id, AdminRoomForm form, BindingResult errors,HttpServletRequest request, Model model, RedirectAttributes redirect) {
         sessions.requireManager(request);
+        byte[] upload=readUpload(form.getImageFile(),errors);
         if(!errors.hasErrors()) {
             RoomCreateRequest payload=new RoomCreateRequest(); payload.setName(form.getName().strip()); payload.setCapacity(form.getCapacity()); payload.setFloor(form.getFloor().strip()); payload.setRoomType(form.getRoomType()); payload.setStatus(form.getStatus()); payload.setImageUrl(form.getImageUrl());
-            try { if(id==null) rooms.createRoom(payload); else rooms.updateRoom(id,payload); redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลห้องแล้ว"); return "redirect:/admin/rooms"; }
+            try {
+                String oldUrl=id==null ? null : rooms.getRoomById(id).getImageUrl();
+                RoomResponse saved=id==null ? rooms.createRoom(payload) : rooms.updateRoom(id,payload);
+                storeImage(ImageStorageService.Kind.ROOMS,saved.getId(),upload,oldUrl,saved.getImageUrl());
+                redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลห้องแล้ว"); return "redirect:/admin/rooms";
+            }
             catch(RuntimeException ex) { errors.reject("room",actionError(ex)); }
         }
         roomModel(model,id); return "admin/rooms";
@@ -145,9 +152,15 @@ public class AdminViewController {
             HttpServletRequest request,Model model,RedirectAttributes redirect) { return saveEquipment(id,form,errors,request,model,redirect); }
     private String saveEquipment(Long id,AdminEquipmentForm form,BindingResult errors,HttpServletRequest request,Model model,RedirectAttributes redirect) {
         sessions.requireManager(request);
+        byte[] upload=readUpload(form.getImageFile(),errors);
         if(!errors.hasErrors()) {
             EquipmentCreateRequest payload=new EquipmentCreateRequest(); payload.setName(form.getName().strip()); payload.setCategory(form.getCategory().strip()); payload.setTotalQuantity(form.getTotalQuantity()); payload.setImageUrl(form.getImageUrl());
-            try { if(id==null) equipment.createEquipment(payload); else equipment.updateEquipment(id,payload); redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลอุปกรณ์แล้ว"); return "redirect:/admin/equipment"; }
+            try {
+                String oldUrl=id==null ? null : equipment.getEquipmentById(id).getImageUrl();
+                EquipmentResponse saved=id==null ? equipment.createEquipment(payload) : equipment.updateEquipment(id,payload);
+                storeImage(ImageStorageService.Kind.EQUIPMENT,saved.getId(),upload,oldUrl,saved.getImageUrl());
+                redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลอุปกรณ์แล้ว"); return "redirect:/admin/equipment";
+            }
             catch(RuntimeException ex) { errors.reject("equipment",actionError(ex)); }
         }
         equipmentModel(model,id); return "admin/equipment";
@@ -190,6 +203,21 @@ public class AdminViewController {
             redirect.addFlashAttribute("flashError","ต้องมีผู้ดูแลระบบที่ใช้งานได้อย่างน้อยหนึ่งบัญชี");
         else { try { users.deleteUserById(id); redirect.addFlashAttribute("flashSuccess","ลบผู้ใช้แล้ว"); } catch(RuntimeException ex) { redirect.addFlashAttribute("flashError",actionError(ex)); } }
         return "redirect:/admin/users";
+    }
+    // อ่านไฟล์รูปที่อัปโหลด คืน null ถ้าไม่ได้เลือกไฟล์ หรือไฟล์ไม่ผ่าน (ใส่ error ไว้ใน BindingResult)
+    private byte[] readUpload(org.springframework.web.multipart.MultipartFile file, BindingResult errors) {
+        if(file==null || file.isEmpty()) return null;
+        if(file.getSize()>ImageStorageService.MAX_BYTES) { errors.rejectValue("imageFile","imageFile.size","ไฟล์รูปต้องไม่เกิน 2 MB"); return null; }
+        try {
+            byte[] data=file.getBytes();
+            if(ImageStorageService.detectContentType(data).isEmpty()) { errors.rejectValue("imageFile","imageFile.type","รองรับเฉพาะไฟล์ PNG, JPG, GIF หรือ WebP"); return null; }
+            return data;
+        } catch(java.io.IOException ex) { errors.rejectValue("imageFile","imageFile.read","อ่านไฟล์รูปไม่สำเร็จ ลองใหม่อีกครั้ง"); return null; }
+    }
+    private void storeImage(ImageStorageService.Kind kind,Long id,byte[] upload,String oldUrl,String newUrl) {
+        if(upload!=null) images.save(kind,id,upload);
+        // ล้างไฟล์เก่าเฉพาะตอนที่ของเดิมเป็นรูปที่อัปโหลดไว้
+        else if(oldUrl!=null && oldUrl.startsWith("/images/")) images.clearUnlessStored(kind,id,newUrl);
     }
     private List<RoomResponse> allRooms() { return rooms.getAllRooms(Pageable.unpaged()).getContent(); }
     private List<EquipmentResponse> allEquipment() { return equipment.getAllEquipments(Pageable.unpaged()).getContent(); }

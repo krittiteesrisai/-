@@ -69,7 +69,8 @@ class AdminViewControllerTest {
         WebSessionSupport sessions = new WebSessionSupport(userRepository);
         validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mvc = MockMvcBuilders.standaloneSetup(new AdminViewController(rooms, equipment, bookings, users, userRepository, sessions))
+        mvc = MockMvcBuilders.standaloneSetup(new AdminViewController(rooms, equipment, bookings, users, userRepository, sessions,
+                        mock(ImageStorageService.class)))
                 .setControllerAdvice(new WebViewAdvice(sessions)).setValidator(validator)
                 .addInterceptors(new WebAccessInterceptor(sessions)).build();
     }
