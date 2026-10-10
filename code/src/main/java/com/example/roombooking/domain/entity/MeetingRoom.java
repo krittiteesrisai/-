@@ -36,6 +36,9 @@ public class MeetingRoom {
     @Column(nullable = false, length = 20)
     private RoomStatus status;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     public MeetingRoom() {
     }
 
@@ -85,5 +88,13 @@ public class MeetingRoom {
 
     public void setStatus(RoomStatus status) {
         this.status = status;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

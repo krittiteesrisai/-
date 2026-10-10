@@ -5,6 +5,7 @@ public class EquipmentResponse {
     private String name;
     private Integer totalQuantity;
     private String category;
+    private String imageUrl;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -15,4 +16,6 @@ public class EquipmentResponse {
     public void setTotalQuantity(Integer totalQuantity) { this.totalQuantity = totalQuantity; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

@@ -21,7 +21,7 @@
   <p class="results-label">พบ <strong th:text="${totalElements}">0</strong> พื้นที่ <span th:if="${selectedDate != null and selectedDate != ''}">ตามเงื่อนไขที่เลือก</span></p>
   <div class="grid-3" th:if="${not #lists.isEmpty(rooms)}">
     <article class="card catalog-card" th:each="room : ${rooms}">
-      <a th:href="@{/rooms/{id}(id=${room.id},date=${selectedDate},startTime=${startTime},endTime=${endTime})}"><img class="catalog-card-image" th:src="@{/assets/img/room-focus.png}" alt="ภาพประกอบพื้นที่ประชุม" width="1536" height="1024" loading="lazy"></a>
+      <a th:href="@{/rooms/{id}(id=${room.id},date=${selectedDate},startTime=${startTime},endTime=${endTime})}"><img class="catalog-card-image" th:src="@{${ui.roomImage(room)}}" alt="ภาพประกอบพื้นที่ประชุม" width="1536" height="1024" loading="lazy"></a>
       <div class="catalog-card-body"><div class="catalog-card-label"><h3 th:text="${room.name}">ห้องประชุม</h3><span class="badge" th:classappend="${room.roomType != null and room.roomType.name() == 'VIP'} ? 'status-vip'" th:text="${ui.roomTypeLabel(room.roomType)}">มาตรฐาน</span></div><p><span th:text="${room.capacity}">8</span> ที่นั่ง · ชั้น <span th:text="${room.floor}">2</span></p><div class="catalog-card-meta"><span class="status-pill" th:classappend="${room.status != null and room.status.name() == 'MAINTENANCE' ? 'status-maintenance' : 'status-available'}" th:text="${room.status != null and room.status.name() == 'MAINTENANCE' ? 'ปิดซ่อมบำรุง' : 'พร้อมให้บริการ'}">พร้อมให้บริการ</span></div><a class="catalog-card-link" th:href="@{/rooms/{id}(id=${room.id},date=${selectedDate},startTime=${startTime},endTime=${endTime})}">ดูรายละเอียด <span aria-hidden="true">→</span></a></div>
     </article>
   </div>

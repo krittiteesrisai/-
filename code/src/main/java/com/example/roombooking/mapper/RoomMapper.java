@@ -16,6 +16,7 @@ public class RoomMapper {
         room.setFloor(request.getFloor());
         room.setRoomType(request.getRoomType());
         room.setStatus(request.getStatus());
+        room.setImageUrl(normalizeImageUrl(request.getImageUrl()));
         return room;
     }
 
@@ -28,6 +29,13 @@ public class RoomMapper {
         response.setFloor(entity.getFloor());
         response.setRoomType(entity.getRoomType());
         response.setStatus(entity.getStatus());
+        response.setImageUrl(entity.getImageUrl());
         return response;
+    }
+
+    // ลิงก์รูปว่าง/มีแต่ช่องว่าง ให้เก็บเป็น null เพื่อให้หน้าเว็บใช้รูปเดิม
+    public static String normalizeImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        return imageUrl.strip();
     }
 }

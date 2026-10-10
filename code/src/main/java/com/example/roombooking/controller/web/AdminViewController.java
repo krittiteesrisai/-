@@ -45,8 +45,8 @@ public class AdminViewController {
     @InitBinder("form") public void safeBinding(WebDataBinder binder) {
         binder.setAutoGrowCollectionLimit(100);
         Class<?> type = binder.getTarget() == null ? Object.class : binder.getTarget().getClass();
-        if (type == AdminRoomForm.class) binder.setAllowedFields("name","capacity","floor","roomType","status");
-        else if (type == AdminEquipmentForm.class) binder.setAllowedFields("name","totalQuantity","category");
+        if (type == AdminRoomForm.class) binder.setAllowedFields("name","capacity","floor","roomType","status","imageUrl");
+        else if (type == AdminEquipmentForm.class) binder.setAllowedFields("name","totalQuantity","category","imageUrl");
         else if (type == AdminUserForm.class) binder.setAllowedFields("username","email","password","role");
         else if (type == AdminBookingForm.class) binder.setAllowedFields("userId","roomId","date","startTime","endTime","purpose","equipmentItems[*].equipmentId","equipmentItems[*].quantity");
     }
@@ -112,7 +112,7 @@ public class AdminViewController {
     }
     @GetMapping("/rooms") public String roomList(@RequestParam(required=false) Long editId, HttpServletRequest request, Model model) {
         sessions.requireManager(request); AdminRoomForm form=new AdminRoomForm();
-        if(editId!=null) { RoomResponse r=rooms.getRoomById(editId); form.setName(r.getName()); form.setCapacity(r.getCapacity()); form.setFloor(r.getFloor()); form.setRoomType(r.getRoomType()); form.setStatus(r.getStatus()); }
+        if(editId!=null) { RoomResponse r=rooms.getRoomById(editId); form.setName(r.getName()); form.setCapacity(r.getCapacity()); form.setFloor(r.getFloor()); form.setRoomType(r.getRoomType()); form.setStatus(r.getStatus()); form.setImageUrl(r.getImageUrl()); }
         model.addAttribute("form",form); roomModel(model,editId); return "admin/rooms";
     }
     @PostMapping("/rooms") public String createRoom(@Valid @ModelAttribute("form") AdminRoomForm form, BindingResult errors,
@@ -122,7 +122,7 @@ public class AdminViewController {
     private String saveRoom(Long id, AdminRoomForm form, BindingResult errors,HttpServletRequest request, Model model, RedirectAttributes redirect) {
         sessions.requireManager(request);
         if(!errors.hasErrors()) {
-            RoomCreateRequest payload=new RoomCreateRequest(); payload.setName(form.getName().strip()); payload.setCapacity(form.getCapacity()); payload.setFloor(form.getFloor().strip()); payload.setRoomType(form.getRoomType()); payload.setStatus(form.getStatus());
+            RoomCreateRequest payload=new RoomCreateRequest(); payload.setName(form.getName().strip()); payload.setCapacity(form.getCapacity()); payload.setFloor(form.getFloor().strip()); payload.setRoomType(form.getRoomType()); payload.setStatus(form.getStatus()); payload.setImageUrl(form.getImageUrl());
             try { if(id==null) rooms.createRoom(payload); else rooms.updateRoom(id,payload); redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลห้องแล้ว"); return "redirect:/admin/rooms"; }
             catch(RuntimeException ex) { errors.reject("room",actionError(ex)); }
         }
@@ -136,7 +136,7 @@ public class AdminViewController {
     }
     @GetMapping("/equipment") public String equipmentList(@RequestParam(required=false) Long editId,HttpServletRequest request,Model model) {
         sessions.requireManager(request); AdminEquipmentForm form=new AdminEquipmentForm();
-        if(editId!=null) { EquipmentResponse e=equipment.getEquipmentById(editId); form.setName(e.getName()); form.setTotalQuantity(e.getTotalQuantity()); form.setCategory(e.getCategory()); }
+        if(editId!=null) { EquipmentResponse e=equipment.getEquipmentById(editId); form.setName(e.getName()); form.setTotalQuantity(e.getTotalQuantity()); form.setCategory(e.getCategory()); form.setImageUrl(e.getImageUrl()); }
         model.addAttribute("form",form); equipmentModel(model,editId); return "admin/equipment";
     }
     @PostMapping("/equipment") public String createEquipment(@Valid @ModelAttribute("form") AdminEquipmentForm form,BindingResult errors,
@@ -146,7 +146,7 @@ public class AdminViewController {
     private String saveEquipment(Long id,AdminEquipmentForm form,BindingResult errors,HttpServletRequest request,Model model,RedirectAttributes redirect) {
         sessions.requireManager(request);
         if(!errors.hasErrors()) {
-            EquipmentCreateRequest payload=new EquipmentCreateRequest(); payload.setName(form.getName().strip()); payload.setCategory(form.getCategory().strip()); payload.setTotalQuantity(form.getTotalQuantity());
+            EquipmentCreateRequest payload=new EquipmentCreateRequest(); payload.setName(form.getName().strip()); payload.setCategory(form.getCategory().strip()); payload.setTotalQuantity(form.getTotalQuantity()); payload.setImageUrl(form.getImageUrl());
             try { if(id==null) equipment.createEquipment(payload); else equipment.updateEquipment(id,payload); redirect.addFlashAttribute("flashSuccess","บันทึกข้อมูลอุปกรณ์แล้ว"); return "redirect:/admin/equipment"; }
             catch(RuntimeException ex) { errors.reject("equipment",actionError(ex)); }
         }

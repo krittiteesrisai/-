@@ -13,6 +13,7 @@ public class EquipmentMapper {
         equipment.setName(request.getName());
         equipment.setTotalQuantity(request.getTotalQuantity());
         equipment.setCategory(request.getCategory());
+        equipment.setImageUrl(RoomMapper.normalizeImageUrl(request.getImageUrl()));
         return equipment;
     }
 
@@ -22,6 +23,7 @@ public class EquipmentMapper {
         response.setName(entity.getName());
         response.setTotalQuantity(entity.getTotalQuantity());
         response.setCategory(entity.getCategory());
+        response.setImageUrl(entity.getImageUrl());
         return response;
     }
 }

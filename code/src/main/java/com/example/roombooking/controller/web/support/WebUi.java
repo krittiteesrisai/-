@@ -1,6 +1,8 @@
 package com.example.roombooking.controller.web.support;
 
 import com.example.roombooking.domain.enums.*;
+import com.example.roombooking.dto.response.EquipmentResponse;
+import com.example.roombooking.dto.response.RoomResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import java.time.*;
@@ -33,6 +35,16 @@ public class WebUi {
         if (role == null) return "—";
         return switch (role) { case USER -> "สมาชิก"; case STAFF -> "เจ้าหน้าที่"; case ADMIN -> "ผู้ดูแลระบบ"; };
     }
+    // ใช้ลิงก์รูปที่แอดมินตั้งไว้ก่อน ถ้าไม่มีค่อยเดารูปจากชื่อแบบเดิม
+    public String equipmentImage(EquipmentResponse equipment) {
+        if (equipment == null) return equipmentImage((String) null);
+        if (hasText(equipment.getImageUrl())) return equipment.getImageUrl();
+        return equipmentImage(equipment.getName());
+    }
+    public String roomImage(RoomResponse room) {
+        return room != null && hasText(room.getImageUrl()) ? room.getImageUrl() : "/assets/img/room-focus.png";
+    }
+    private static boolean hasText(String value) { return value != null && !value.isBlank(); }
     public String equipmentImage(String name) {
         String text = name == null ? "" : name.toLowerCase(Locale.ROOT);
         if (text.contains("โปรเจ") || text.contains("โปรเจค") || text.contains("projector")) return "/assets/img/projector.png";

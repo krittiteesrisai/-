@@ -4,6 +4,7 @@ import com.example.roombooking.domain.enums.RoomStatus;
 import com.example.roombooking.domain.enums.RoomType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
@@ -25,6 +26,10 @@ public class RoomCreateRequest {
     @NotNull(message = "status is required")
     private RoomStatus status;
 
+    @Size(max = 500, message = "imageUrl must be at most 500 characters")
+    @Pattern(regexp = "^\\s*$|^https?://\\S+$", message = "imageUrl must start with http:// or https://")
+    private String imageUrl;
+
     // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -36,4 +41,6 @@ public class RoomCreateRequest {
     public void setRoomType(RoomType roomType) { this.roomType = roomType; }
     public RoomStatus getStatus() { return status; }
     public void setStatus(RoomStatus status) { this.status = status; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

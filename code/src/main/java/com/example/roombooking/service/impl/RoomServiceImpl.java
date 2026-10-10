@@ -56,6 +56,7 @@ public class RoomServiceImpl implements RoomService {
         existingRoom.setFloor(request.getFloor());
         existingRoom.setRoomType(request.getRoomType());
         existingRoom.setStatus(request.getStatus());
+        existingRoom.setImageUrl(RoomMapper.normalizeImageUrl(request.getImageUrl()));
 
         MeetingRoom updatedRoom = meetingRoomRepository.save(existingRoom);
         return roomMapper.toResponse(updatedRoom);

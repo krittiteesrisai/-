@@ -452,7 +452,7 @@ public class BookingViewController {
             equipment.addAll(page.getContent());
         } while (page.hasNext());
         model.addAttribute("equipment", equipment);
-        model.addAttribute("equipmentPhotos", equipment.stream().collect(Collectors.toMap(EquipmentResponse::getId, item -> equipmentPhoto(item.getName()))));
+        model.addAttribute("equipmentPhotos", equipment.stream().collect(Collectors.toMap(EquipmentResponse::getId, item -> equipmentPhoto(item))));
         return equipment;
     }
 
@@ -482,7 +482,7 @@ public class BookingViewController {
         model.addAttribute("editable", booking.getStatus() == BookingStatus.PENDING);
         model.addAttribute("cancellable", cancellable(booking.getStatus()));
         model.addAttribute("itemPhotos", booking.getEquipmentItems().stream().collect(Collectors.toMap(
-                BookingResponse.EquipmentItem::getEquipmentId, item -> equipmentPhoto(item.getEquipmentName()), (first, second) -> first)));
+                BookingResponse.EquipmentItem::getEquipmentId, item -> equipmentPhoto(item.getEquipmentId(), item.getEquipmentName()), (first, second) -> first)));
     }
 
     private String dateRange(BookingResponse booking) {
@@ -497,6 +497,24 @@ public class BookingViewController {
 
     private String dateLabel(LocalDate date) {
         return date.format(THAI_DATE) + " " + (date.getYear() + 543);
+    }
+
+    // ใช้ลิงก์รูปที่แอดมินตั้งไว้ก่อน ถ้าไม่มีค่อยเดารูปจากชื่อแบบเดิม
+    private String equipmentPhoto(EquipmentResponse item) {
+        if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) return item.getImageUrl();
+        return equipmentPhoto(item.getName());
+    }
+
+    private String equipmentPhoto(Long equipmentId, String name) {
+        if (equipmentId != null) {
+            try {
+                EquipmentResponse item = equipmentService.getEquipmentById(equipmentId);
+                if (item != null && item.getImageUrl() != null && !item.getImageUrl().isBlank()) return item.getImageUrl();
+            } catch (ResourceNotFoundException ignored) {
+                // อุปกรณ์ถูกลบไปแล้ว ใช้รูปจากชื่อแทน
+            }
+        }
+        return equipmentPhoto(name);
     }
 
     private String equipmentPhoto(String name) {

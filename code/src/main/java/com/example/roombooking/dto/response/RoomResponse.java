@@ -10,6 +10,7 @@ public class RoomResponse {
     private String floor;
     private RoomType roomType;
     private RoomStatus status;
+    private String imageUrl;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -24,4 +25,6 @@ public class RoomResponse {
     public void setRoomType(RoomType roomType) { this.roomType = roomType; }
     public RoomStatus getStatus() { return status; }
     public void setStatus(RoomStatus status) { this.status = status; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

@@ -6,6 +6,7 @@ import com.example.roombooking.dto.response.EquipmentResponse;
 import com.example.roombooking.exception.ConflictException;
 import com.example.roombooking.exception.ResourceNotFoundException;
 import com.example.roombooking.mapper.EquipmentMapper;
+import com.example.roombooking.mapper.RoomMapper;
 import com.example.roombooking.repository.EquipmentRepository;
 import com.example.roombooking.service.EquipmentService;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -60,6 +61,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         existingEquipment.setName(request.getName());
         existingEquipment.setTotalQuantity(request.getTotalQuantity());
         existingEquipment.setCategory(request.getCategory());
+        existingEquipment.setImageUrl(RoomMapper.normalizeImageUrl(request.getImageUrl()));
 
         Equipment updatedEquipment = equipmentRepository.save(existingEquipment);
         return equipmentMapper.toResponse(updatedEquipment);

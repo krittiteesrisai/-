@@ -24,6 +24,9 @@ public class Equipment {
     @Column(length = 50)
     private String category;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     public Equipment() {
     }
 
@@ -57,5 +60,13 @@ public class Equipment {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
