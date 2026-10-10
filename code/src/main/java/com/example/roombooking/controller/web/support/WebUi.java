@@ -3,18 +3,22 @@ package com.example.roombooking.controller.web.support;
 import com.example.roombooking.domain.enums.*;
 import com.example.roombooking.dto.response.EquipmentResponse;
 import com.example.roombooking.dto.response.RoomResponse;
+import com.example.roombooking.service.ImageStorageService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import java.time.*;
 import java.time.chrono.ThaiBuddhistChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.List;
 import java.util.Locale;
 
 /** Presentation helpers shared by the server-rendered website. */
 @Component("webUi")
 @Profile("web")
 public class WebUi {
+    private final ImageStorageService images;
+    public WebUi(ImageStorageService images) { this.images = images; }
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("th-TH"))
             .withChronology(ThaiBuddhistChronology.INSTANCE);
     public String date(TemporalAccessor value) { return value == null ? "—" : DATE.format(value); }
@@ -43,6 +47,18 @@ public class WebUi {
     }
     public String roomImage(RoomResponse room) {
         return room != null && hasText(room.getImageUrl()) ? room.getImageUrl() : "/assets/img/room-focus.png";
+    }
+    // รูปสำหรับสไลด์หน้ารายละเอียด: รูปที่อัปโหลดทั้งหมด ถ้าไม่มีใช้รูปเดียวแบบเดิม
+    public List<String> roomGallery(RoomResponse room) {
+        List<String> uploads = room == null ? List.of() : gallery(ImageStorageService.Kind.ROOM, room.getId());
+        return uploads.isEmpty() ? List.of(roomImage(room)) : uploads;
+    }
+    public List<String> equipmentGallery(EquipmentResponse equipment) {
+        List<String> uploads = equipment == null ? List.of() : gallery(ImageStorageService.Kind.EQUIPMENT, equipment.getId());
+        return uploads.isEmpty() ? List.of(equipmentImage(equipment)) : uploads;
+    }
+    private List<String> gallery(ImageStorageService.Kind kind, Long id) {
+        return id == null ? List.of() : images.imageIds(kind, id).stream().map(ImageStorageService::url).toList();
     }
     private static boolean hasText(String value) { return value != null && !value.isBlank(); }
     public String equipmentImage(String name) {

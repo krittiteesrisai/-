@@ -22,13 +22,12 @@ public class ImageViewController {
         this.images = images;
     }
 
-    @GetMapping("/images/{kind}/{id}")
-    public ResponseEntity<byte[]> image(@PathVariable String kind, @PathVariable Long id) {
-        return ImageStorageService.Kind.fromPath(kind)
-                .flatMap(k -> images.load(k, id))
+    @GetMapping("/images/{id}")
+    public ResponseEntity<byte[]> image(@PathVariable Long id) {
+        return images.load(id)
                 .map(image -> ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(image.getContentType()))
-                        // URL มี ?v= เปลี่ยนทุกครั้งที่อัปโหลดใหม่ จึงแคชนานได้
+                        // รูปแต่ละ id ไม่ถูกแก้ทับ (อัปโหลดใหม่ = id ใหม่) จึงแคชนานได้
                         .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePublic())
                         .header("X-Content-Type-Options", "nosniff")
                         .body(image.getData()))

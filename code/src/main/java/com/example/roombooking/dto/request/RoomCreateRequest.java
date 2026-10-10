@@ -27,7 +27,7 @@ public class RoomCreateRequest {
     private RoomStatus status;
 
     @Size(max = 500, message = "imageUrl must be at most 500 characters")
-    @Pattern(regexp = "^\\s*$|^https?://\\S+$|^/images/(rooms|equipment)/\\d+(\\?v=\\d+)?$", message = "imageUrl must start with http:// or https://")
+    @Pattern(regexp = "^\\s*$|^https?://\\S+$|^/images/\\d+$", message = "imageUrl must start with http:// or https://")
     private String imageUrl;
 
     // Getters and Setters

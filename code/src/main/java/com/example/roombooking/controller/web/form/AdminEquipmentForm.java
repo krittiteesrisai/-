@@ -1,17 +1,19 @@
 package com.example.roombooking.controller.web.form;
 import jakarta.validation.constraints.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 @Data
 public class AdminEquipmentForm {
     @NotBlank(message="กรุณาระบุชื่ออุปกรณ์") @Size(max=100) private String name;
     @NotNull @Min(value=0,message="จำนวนต้องไม่น้อยกว่า 0") private Integer totalQuantity;
     @NotBlank(message="กรุณาระบุหมวดหมู่") @Size(max=50) private String category;
-    @Size(max=500,message="ลิงก์รูปยาวได้ไม่เกิน 500 ตัวอักษร") @Pattern(regexp="^\\s*$|^\\s*https?://\\S+\\s*$|^\\s*/images/(rooms|equipment)/\\d+(\\?v=\\d+)?\\s*$",message="ลิงก์รูปต้องขึ้นต้นด้วย http:// หรือ https://") private String imageUrl;
-    private MultipartFile imageFile;
+    @Size(max=500,message="ลิงก์รูปยาวได้ไม่เกิน 500 ตัวอักษร") @Pattern(regexp="^\\s*$|^\\s*https?://\\S+\\s*$",message="ลิงก์รูปต้องขึ้นต้นด้วย http:// หรือ https://") private String imageUrl;
+    private List<MultipartFile> imageFiles = new ArrayList<>();
     // เขียน getter/setter เองสำหรับ field ใหม่ (ไม่พึ่ง Lombok)
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    public MultipartFile getImageFile() { return imageFile; }
-    public void setImageFile(MultipartFile imageFile) { this.imageFile = imageFile; }
+    public List<MultipartFile> getImageFiles() { return imageFiles; }
+    public void setImageFiles(List<MultipartFile> imageFiles) { this.imageFiles = imageFiles; }
 }

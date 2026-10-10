@@ -4,6 +4,7 @@ import com.example.roombooking.domain.entity.Booking;
 import com.example.roombooking.domain.entity.BookingEquipment;
 import com.example.roombooking.domain.entity.BookingStatusHistory;
 import com.example.roombooking.domain.entity.Equipment;
+import com.example.roombooking.domain.entity.ItemImage;
 import com.example.roombooking.domain.entity.MeetingRoom;
 import com.example.roombooking.domain.entity.User;
 import com.example.roombooking.domain.entity.UserProfile;
@@ -41,7 +42,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * H2 compatibility mode checks the portable contract, not PostgreSQL engine behavior. */
 class PostgresqlSchemaTest {
     private static final Set<String> TABLES = Set.of("users", "user_profile", "meeting_rooms", "equipment",
-            "bookings", "booking_equipment", "booking_status_history");
+            "bookings", "booking_equipment", "booking_status_history",
+            // อัลบั้มรูปห้อง/อุปกรณ์ (เพิ่มภายหลัง ไม่มี foreign key จึงไม่อยู่ในชุด FK เจ็ดเส้นด้านล่าง)
+            "item_images");
     private DataSource database;
     private Connection schemaConnection;
 
@@ -218,7 +221,7 @@ class PostgresqlSchemaTest {
                     .addAnnotatedClass(User.class).addAnnotatedClass(UserProfile.class)
                     .addAnnotatedClass(MeetingRoom.class).addAnnotatedClass(Equipment.class)
                     .addAnnotatedClass(Booking.class).addAnnotatedClass(BookingEquipment.class)
-                    .addAnnotatedClass(BookingStatusHistory.class).buildMetadata();
+                    .addAnnotatedClass(BookingStatusHistory.class).addAnnotatedClass(ItemImage.class).buildMetadata();
             try (var sessionFactory = metadata.buildSessionFactory()) {
                 assertTrue(sessionFactory.isOpen());
             }
@@ -243,6 +246,8 @@ class PostgresqlSchemaTest {
         insert("INSERT INTO booking_status_history(booking_id,old_status,new_status,changed_by,changed_at) "
                         + "VALUES(?,?,?,?,?)", bookingId, "PENDING", "APPROVED", userId,
                 LocalDateTime.of(2026, 10, 1, 8, 1));
+        insert("INSERT INTO item_images(item_type,item_id,sort_order,content_type,data) VALUES(?,?,?,?,?)",
+                "ROOM", roomId, 0, "image/png", new byte[]{1, 2, 3});
         return new Fixture(userId, roomId, equipmentId, bookingId, linkId);
     }
 
@@ -261,7 +266,9 @@ class PostgresqlSchemaTest {
                 while (rows.next()) {
                     List<Object> row = new ArrayList<>();
                     for (int column = 1; column <= rows.getMetaData().getColumnCount(); column++) {
-                        row.add(rows.getObject(column));
+                        Object value = rows.getObject(column);
+                        // byte[] (คอลัมน์รูป) เทียบด้วย equals ไม่ได้ จึงเก็บเป็น hex แทน
+                        row.add(value instanceof byte[] bytes ? java.util.HexFormat.of().formatHex(bytes) : value);
                     }
                     values.add(row);
                 }
