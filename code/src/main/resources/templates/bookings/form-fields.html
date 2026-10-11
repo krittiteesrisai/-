@@ -18,11 +18,11 @@
   </div>
   <div class="field">
     <label for="date">วันที่เริ่มต้น <span aria-hidden="true">*</span></label>
-    <input type="date" id="date" th:field="*{date}" required th:attr="aria-invalid=${#fields.hasErrors('date')}">
+    <input type="date" id="date" th:field="*{date}" th:min="${ui.today()}" required th:attr="aria-invalid=${#fields.hasErrors('date')}">
   </div>
   <div class="field">
     <label for="endDate">วันที่สิ้นสุด</label>
-    <input type="date" id="endDate" th:field="*{endDate}" aria-describedby="end-date-help" th:attr="aria-invalid=${#fields.hasErrors('endDate')}">
+    <input type="date" id="endDate" th:field="*{endDate}" th:min="${ui.today()}" aria-describedby="end-date-help" th:attr="aria-invalid=${#fields.hasErrors('endDate')}">
     <small id="end-date-help" class="muted">เว้นว่างหากใช้งานภายในวันเดียวกัน</small>
   </div>
   <div class="field">
@@ -66,7 +66,7 @@
     <div><dt>รองรับ</dt><dd th:text="${selectedRoom.capacity + ' คน'}"></dd></div>
     <div th:if="${selectedRoom.floor != null}"><dt>ชั้น</dt><dd th:text="${selectedRoom.floor}"></dd></div>
   </dl>
-  <p class="notice" th:if="${selectedRoom.roomType != null and selectedRoom.roomType.name() == 'STANDARD'}">ห้องมาตรฐานอนุมัติทันทีเมื่อสร้างการจองสำเร็จ</p>
+  <p class="notice" th:if="${selectedRoom.roomType != null and selectedRoom.roomType.name() == 'STANDARD'}">ห้องมาตรฐานรอผู้ดูแลระบบอนุมัติหลังสร้างการจอง</p>
   <p class="notice" th:if="${selectedRoom.roomType != null and selectedRoom.roomType.name() == 'VIP'}">ห้อง VIP รอผู้ดูแลระบบอนุมัติ</p>
   <small class="muted">ภาพประกอบบรรยากาศพื้นที่ทำงาน</small>
 </aside>

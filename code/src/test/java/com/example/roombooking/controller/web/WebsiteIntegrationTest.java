@@ -86,7 +86,7 @@ class WebsiteIntegrationTest {
         assertEquals(403,manager.get("/admin/users").status);
     }
 
-    @Test void standardBookingIsApprovedAutomaticallyAndEditIsUnavailable() throws Exception {
+    @Test void standardBookingWaitsForApprovalAndCanStillBeEdited() throws Exception {
         WebClient member=browser(); member.login("narin");
         assertEquals(200,member.get("/bookings/new?roomId=1").status);
         String date=LocalDate.now().plusDays(15).toString();
@@ -99,9 +99,10 @@ class WebsiteIntegrationTest {
         assertTrue(submit.location.matches("/bookings/\\d+/submitted"),submit.html);
         String detail=submit.location.replace("/submitted","");
         Long bookingId=Long.valueOf(detail.substring(detail.lastIndexOf('/')+1));
-        assertEquals(BookingStatus.APPROVED,bookingRepository.findById(bookingId).orElseThrow().getStatus());
-        assertTrue(member.get(submit.location).html.contains("อนุมัติแล้ว"));
-        assertEquals(detail,member.get(detail+"/edit").location);
+        // กฎใหม่: ห้องมาตรฐานรอผู้ดูแลระบบอนุมัติ และยังแก้ไขได้ระหว่างรอ
+        assertEquals(BookingStatus.PENDING,bookingRepository.findById(bookingId).orElseThrow().getStatus());
+        assertTrue(member.get(submit.location).html.contains("รออนุมัติ"));
+        assertEquals(200,member.get(detail+"/edit").status);
         assertEquals(detail,member.post(detail+"/cancel",Map.of()).location);
         assertEquals(BookingStatus.CANCELLED,bookingRepository.findById(bookingId).orElseThrow().getStatus());
     }

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * ทดสอบว่า BookingServiceImpl.createBooking() เรียกใช้ Strategy Pattern จริง
- * STANDARD -> อนุมัติอัตโนมัติ (APPROVED), VIP -> รออนุมัติ (PENDING)
+ * กฎใหม่: ทั้ง STANDARD และ VIP เริ่มที่รออนุมัติ (PENDING)
  * ใช้ BookingRuleStrategyFactory ตัวจริง เพื่อทดสอบว่าเลือก strategy ถูกตัว
  */
 @ExtendWith(MockitoExtension.class)
@@ -101,17 +101,16 @@ class BookingServiceImplStrategyTest {
     }
 
     @Test
-    void createBooking_standardRoom_isApprovedAutomatically() {
+    void createBooking_standardRoom_staysPendingForApproval() {
         givenRequesterAndSave();
         validationChainFindsRoom(buildRoom(RoomType.STANDARD));
 
         BookingResponse response = bookingService.createBooking(buildRequest(), 1L);
 
-        assertEquals(BookingStatus.APPROVED, response.getStatus());
+        assertEquals(BookingStatus.PENDING, response.getStatus());
         ArgumentCaptor<Booking> saved = ArgumentCaptor.forClass(Booking.class);
         verify(bookingRepository).save(saved.capture());
-        // ต้องเปลี่ยนสถานะก่อน save ไม่งั้นค่า APPROVED จะไม่ถูกบันทึกลงฐานข้อมูล
-        assertEquals(BookingStatus.APPROVED, saved.getValue().getStatus());
+        assertEquals(BookingStatus.PENDING, saved.getValue().getStatus());
     }
 
     @Test

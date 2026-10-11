@@ -23,6 +23,8 @@ public class WebUi {
             .withChronology(ThaiBuddhistChronology.INSTANCE);
     public String date(TemporalAccessor value) { return value == null ? "—" : DATE.format(value); }
     public String time(TemporalAccessor value) { return value == null ? "—" : DateTimeFormatter.ofPattern("HH:mm").format(value); }
+    // วันนี้ตามเวลาไทย ใช้เป็น min ของช่องเลือกวันจอง (เซิร์ฟเวอร์รันเป็น UTC)
+    public String today() { return LocalDate.now(ZoneId.of("Asia/Bangkok")).toString(); }
     public String bookingCode(Long id) { return id == null ? "—" : String.format("BK-%04d", id); }
     public String roomTypeLabel(RoomType type) { return type == RoomType.VIP ? "VIP" : "มาตรฐาน"; }
     public String statusLabel(BookingStatus status) {

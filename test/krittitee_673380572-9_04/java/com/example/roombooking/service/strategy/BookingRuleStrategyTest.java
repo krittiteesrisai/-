@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,8 +20,9 @@ class BookingRuleStrategyTest {
     }
 
     @Test
-    void standardRoom_doesNotRequireApproval() {
-        assertFalse(new StandardRoomRuleStrategy().requiresApproval());
+    void standardRoom_requiresApproval() {
+        // กฎใหม่: ห้องมาตรฐานต้องรอผู้ดูแลระบบอนุมัติเหมือน VIP
+        assertTrue(new StandardRoomRuleStrategy().requiresApproval());
     }
 
     @Test
