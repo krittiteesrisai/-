@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="th" xmlns:th="http://www.thymeleaf.org"><body>
-<!-- สไลด์รูปหน้ารายละเอียด: ปัดหรือกดลูกศรเลื่อนได้ ถ้ามีรูปเดียวแสดงเหมือนเดิม -->
+<!-- สไลด์รูปหน้ารายละเอียด: ปัดหรือกดลูกศรเลื่อนได้ กดที่รูปเพื่อดูเต็มจอและซูม ถ้ามีรูปเดียวแสดงเหมือนเดิม -->
 <div class="gallery" data-gallery th:fragment="gallery(slides, label)">
   <div class="gallery-track" data-gallery-track tabindex="0" role="group" th:aria-label="${label}">
     <img th:each="src, s : ${slides}" class="detail-photo gallery-slide" th:src="@{${src}}"
@@ -12,5 +12,15 @@
     <button class="gallery-nav gallery-next" type="button" data-gallery-next aria-label="รูปถัดไป">&#8250;</button>
     <span class="gallery-count" data-gallery-count aria-live="polite" th:text="${'1 / ' + #lists.size(slides)}">1 / 2</span>
   </th:block>
+  <button class="gallery-zoom" type="button" data-gallery-open aria-label="ดูรูปเต็มจอ">&#10530;</button>
+  <dialog class="lightbox" data-lightbox th:aria-label="${label}">
+    <div class="lightbox-stage" data-lightbox-stage><img class="lightbox-image" data-lightbox-image src="" alt=""></div>
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="ปิด">&times;</button>
+    <th:block th:if="${#lists.size(slides) > 1}">
+      <button class="gallery-nav lightbox-prev" type="button" data-lightbox-prev aria-label="รูปก่อนหน้า">&#8249;</button>
+      <button class="gallery-nav lightbox-next" type="button" data-lightbox-next aria-label="รูปถัดไป">&#8250;</button>
+    </th:block>
+    <p class="lightbox-hint" data-lightbox-count aria-live="polite">กดที่รูปเพื่อซูม</p>
+  </dialog>
 </div>
 </body></html>
