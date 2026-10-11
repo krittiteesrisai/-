@@ -20,6 +20,7 @@ import com.example.roombooking.exception.RoomNotAvailableException;
 import com.example.roombooking.service.BookingService;
 import com.example.roombooking.service.EquipmentService;
 import com.example.roombooking.service.RoomService;
+import com.example.roombooking.service.validation.PastBookingTimeHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -361,6 +362,10 @@ public class BookingViewController {
         if (form.getStartDateTime() != null && form.getEndDateTime() != null
                 && !form.getStartDateTime().isBefore(form.getEndDateTime())) {
             errors.rejectValue("endTime", "booking.time", "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น");
+        }
+        if (form.getStartDateTime() != null
+                && form.getStartDateTime().isBefore(LocalDateTime.now(PastBookingTimeHandler.BOOKING_ZONE))) {
+            errors.rejectValue("startTime", "booking.past", "ไม่สามารถจองช่วงเวลาที่ผ่านมาแล้ว กรุณาเลือกวันและเวลาใหม่");
         }
         if (form.getRoomId() != null && form.getRoomId() > 0 && !errors.hasFieldErrors("roomId")) {
             try {
