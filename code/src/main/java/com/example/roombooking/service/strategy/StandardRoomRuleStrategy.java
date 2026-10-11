@@ -13,6 +13,6 @@ public class StandardRoomRuleStrategy implements BookingRuleStrategy {
 
     @Override
     public boolean requiresApproval() {
-        return false;
+        return true;
     }
 }
