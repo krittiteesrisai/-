@@ -55,25 +55,72 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-dialog-close]').forEach((button) => button.addEventListener('click', () => button.closest('dialog')?.close()));
   document.querySelectorAll('[data-gallery]').forEach((gallery) => {
     const track = gallery.querySelector('[data-gallery-track]');
+    if (!track) return;
+    const slides = Array.from(track.querySelectorAll('img'));
+    const total = slides.length;
     const prev = gallery.querySelector('[data-gallery-prev]');
     const next = gallery.querySelector('[data-gallery-next]');
     const count = gallery.querySelector('[data-gallery-count]');
-    if (!track || !prev || !next) return;
-    const total = track.children.length;
     const current = () => Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
     const go = (index) => track.scrollTo({left: Math.max(0, Math.min(total - 1, index)) * track.clientWidth});
-    const update = () => {
-      const index = current();
-      prev.disabled = index <= 0; next.disabled = index >= total - 1;
-      if (count) count.textContent = `${index + 1} / ${total}`;
+    if (prev && next) {
+      const update = () => {
+        const index = current();
+        prev.disabled = index <= 0; next.disabled = index >= total - 1;
+        if (count) count.textContent = `${index + 1} / ${total}`;
+      };
+      prev.addEventListener('click', () => go(current() - 1));
+      next.addEventListener('click', () => go(current() + 1));
+      track.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') { event.preventDefault(); go(current() - 1); }
+        if (event.key === 'ArrowRight') { event.preventDefault(); go(current() + 1); }
+      });
+      track.addEventListener('scroll', () => window.requestAnimationFrame(update), {passive: true});
+      update();
+    }
+
+    // ดูเต็มจอ + ซูม: กดที่รูปหรือปุ่มขยาย, ในหน้าเต็มจอกดที่รูปเพื่อซูม 2 เท่าแล้วลากเลื่อนดู
+    const lightbox = gallery.querySelector('[data-lightbox]');
+    const opener = gallery.querySelector('[data-gallery-open]');
+    if (!lightbox || typeof lightbox.showModal !== 'function') { opener?.remove(); return; }
+    const stage = lightbox.querySelector('[data-lightbox-stage]');
+    const image = lightbox.querySelector('[data-lightbox-image]');
+    const hint = lightbox.querySelector('[data-lightbox-count]');
+    const lightPrev = lightbox.querySelector('[data-lightbox-prev]');
+    const lightNext = lightbox.querySelector('[data-lightbox-next]');
+    let shown = 0;
+    const setZoom = (zoomed, event) => {
+      stage.classList.toggle('is-zoomed', zoomed);
+      if (zoomed && event) {
+        // ซูมเข้าไปตรงจุดที่กด
+        const box = image.getBoundingClientRect();
+        const x = (event.clientX - box.left) / box.width; const y = (event.clientY - box.top) / box.height;
+        stage.scrollLeft = x * stage.scrollWidth - stage.clientWidth / 2;
+        stage.scrollTop = y * stage.scrollHeight - stage.clientHeight / 2;
+      }
     };
-    prev.addEventListener('click', () => go(current() - 1));
-    next.addEventListener('click', () => go(current() + 1));
-    track.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowLeft') { event.preventDefault(); go(current() - 1); }
-      if (event.key === 'ArrowRight') { event.preventDefault(); go(current() + 1); }
+    const show = (index) => {
+      shown = Math.max(0, Math.min(total - 1, index));
+      image.src = slides[shown].currentSrc || slides[shown].src;
+      image.alt = slides[shown].alt;
+      setZoom(false);
+      if (lightPrev) lightPrev.disabled = shown <= 0;
+      if (lightNext) lightNext.disabled = shown >= total - 1;
+      hint.textContent = (total > 1 ? `${shown + 1} / ${total} · ` : '') + 'กดที่รูปเพื่อซูม';
+    };
+    const open = (index) => { show(index); lightbox.showModal(); };
+    opener?.addEventListener('click', () => open(current()));
+    slides.forEach((slide, index) => slide.addEventListener('click', () => open(index)));
+    image.addEventListener('click', (event) => setZoom(!stage.classList.contains('is-zoomed'), event));
+    lightPrev?.addEventListener('click', () => show(shown - 1));
+    lightNext?.addEventListener('click', () => show(shown + 1));
+    lightbox.querySelector('[data-lightbox-close]').addEventListener('click', () => lightbox.close());
+    // กดพื้นที่มืดรอบรูปเพื่อปิด
+    stage.addEventListener('click', (event) => { if (event.target === stage) lightbox.close(); });
+    lightbox.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') { event.preventDefault(); show(shown - 1); }
+      if (event.key === 'ArrowRight') { event.preventDefault(); show(shown + 1); }
     });
-    track.addEventListener('scroll', () => window.requestAnimationFrame(update), {passive: true});
-    update();
+    lightbox.addEventListener('close', () => { go(shown); opener?.focus(); });
   });
 });
